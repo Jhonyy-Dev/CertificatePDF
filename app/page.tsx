@@ -1,101 +1,132 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import React, { useState, useRef } from 'react'
+import { motion } from 'framer-motion'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
+import Certificate from '../components/Certificate'
+
+export default function CertificateGenerator() {
+  const [studentName, setStudentName] = useState('')
+  const [courseName, setCourseName] = useState('')
+  const [completionDate, setCompletionDate] = useState('')
+  const [certificateId, setCertificateId] = useState('')
+  const [showCertificate, setShowCertificate] = useState(false)
+  const certificateRef = useRef<HTMLDivElement>(null)
+
+  const generateRandomCertificateId = () => {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    let result = ''
+    for (let i = 0; i < 15; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length))
+    }
+    return result
+  }
+
+  const generateCertificate = (e: React.FormEvent) => {
+    e.preventDefault()
+    const newCertificateId = generateRandomCertificateId()
+    setCertificateId(newCertificateId)
+    setShowCertificate(true)
+  }
+
+  const downloadCertificate = () => {
+    if (certificateRef.current) {
+      html2canvas(certificateRef.current, { scale: 2 }).then((canvas) => {
+        const imgData = canvas.toDataURL('image/png')
+        const pdf = new jsPDF('l', 'mm', 'a4')
+        const pdfWidth = pdf.internal.pageSize.getWidth()
+        const pdfHeight = pdf.internal.pageSize.getHeight()
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+        pdf.save(`${studentName.replace(' ', '_')}_certificate.pdf`)
+      })
+    }
+  }
+
+  const goBackToForm = () => {
+    setShowCertificate(false)
+    setCertificateId('')
+  }
+
+  const buttonClasses = "px-6 py-3 bg-blue-500 bg-opacity-20 backdrop-blur-sm text-blue-800 rounded-[25px] font-semibold shadow-lg hover:bg-opacity-30 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50"
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex flex-col items-center justify-center p-4">
+      <h1 className="text-4xl font-bold text-blue-800 mb-8">Cybersecurity Certificate Generator</h1>
+      {!showCertificate ? (
+        <motion.form
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          onSubmit={generateCertificate}
+          className="bg-white bg-opacity-70 backdrop-blur-sm p-8 rounded-lg shadow-lg w-full max-w-md"
+        >
+          <div className="mb-4">
+            <label htmlFor="studentName" className="block text-sm font-medium text-gray-700 mb-1">Student Name</label>
+            <input
+              type="text"
+              id="studentName"
+              value={studentName}
+              onChange={(e) => setStudentName(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          </div>
+          <div className="mb-4">
+            <label htmlFor="courseName" className="block text-sm font-medium text-gray-700 mb-1">Course Name</label>
+            <input
+              type="text"
+              id="courseName"
+              value={courseName}
+              onChange={(e) => setCourseName(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          <div className="mb-6">
+            <label htmlFor="completionDate" className="block text-sm font-medium text-gray-700 mb-1">Completion Date</label>
+            <input
+              type="date"
+              id="completionDate"
+              value={completionDate}
+              onChange={(e) => setCompletionDate(e.target.value)}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          <button type="submit" className={buttonClasses}>
+            Generate Certificate
+          </button>
+        </motion.form>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col items-center"
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <div ref={certificateRef}>
+            <Certificate
+              studentName={studentName}
+              courseName={courseName}
+              completionDate={completionDate}
+              certificateId={certificateId}
+            />
+          </div>
+          <div className="mt-4 text-center">
+            <p className="text-lg font-semibold text-blue-800">Certificate ID: {certificateId}</p>
+          </div>
+          <div className="flex flex-row mt-8">
+            <button onClick={goBackToForm} className={`${buttonClasses} mr-4`}>
+              Back to Form
+            </button>
+            <button onClick={downloadCertificate} className={buttonClasses}>
+              Download Certificate (PDF)
+            </button>
+          </div>
+        </motion.div>
+      )}
     </div>
-  );
+  )
 }
+
